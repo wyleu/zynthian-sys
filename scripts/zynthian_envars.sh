@@ -22,26 +22,26 @@
 # ****************************************************************************
 
 #Audio Config
-export SOUNDCARD_NAME="HifiBerry DAC+"
-export SOUNDCARD_CONFIG="dtoverlay=hifiberry-dacplus"
+export SOUNDCARD_NAME="AudioInjector"
+export SOUNDCARD_CONFIG="dtoverlay=audioinjector-wm8731-audio"
 export JACKD_OPTIONS="-P 70 -t 2000 -s -d alsa -d hw:0 -r 44100 -p 256 -n 2 -X raw"
 
 #Display Config
-export DISPLAY_NAME="PiTFT 2.8 Resistive"
-export DISPLAY_CONFIG="dtoverlay=pitft28-resistive,rotate=90,speed=32000000,fps=20"
+export DISPLAY_NAME="Generic HDMI display"
+export DISPLAY_CONFIG="disable_overscan=1\nlcd_rotate=2\n"
 export DISPLAY_WIDTH=""
 export DISPLAY_HEIGHT=""
-export FRAMEBUFFER="/dev/fb1"
+export FRAMEBUFFER="/dev/fb0"
 
 # Zynthian Features Flags
 export ZYNTHIAN_AUBIONOTES=1
 export ZYNTHIAN_TOUCHOSC=1
 
 # Zynthian Wiring Config
-export ZYNTHIAN_WIRING_LAYOUT="PROTOTYPE-4"
-export ZYNTHIAN_WIRING_ENCODER_A=""
-export ZYNTHIAN_WIRING_ENCODER_B=""
-export ZYNTHIAN_WIRING_SWITCHES=""
+export ZYNTHIAN_WIRING_LAYOUT="DUMMIES"
+export ZYNTHIAN_WIRING_ENCODER_A="0,0,0,0"
+export ZYNTHIAN_WIRING_ENCODER_B="0,0,0,0"
+export ZYNTHIAN_WIRING_SWITCHES="0,0,0,0"
 
 # Zynthian UI Config
 export ZYNTHIAN_UI_COLOR_BG="#000000"
@@ -50,6 +50,7 @@ export ZYNTHIAN_UI_COLOR_ON="#ff0000"
 export ZYNTHIAN_UI_COLOR_PANEL_BG="#3a424d"
 export ZYNTHIAN_UI_FONT_FAMILY="Audiowide"
 export ZYNTHIAN_UI_FONT_SIZE="10"
+export ZYNTHIAN_AUBIONOTES_OPTIONS="-O complex -t 0.5 -s -88  -p yinfft -l 0.5"
 
 # Directory Paths
 export ZYNTHIAN_DIR="/zynthian"
