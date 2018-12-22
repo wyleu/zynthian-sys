@@ -34,48 +34,50 @@ mkdir $ZYNTHIAN_PLUGINS_SRC_DIR
 # Install MOD Plugins
 #------------------------------------------------
 
-bash $ZYNTHIAN_RECIPE_DIR/install_fluidsynth.sh
-#bash $ZYNTHIAN_RECIPE_DIR/install_mod-setbfree.sh
-#bash $ZYNTHIAN_RECIPE_DIR/install_zynaddsubfx.sh
-#bash $ZYNTHIAN_RECIPE_DIR/install_linuxsampler.sh
-bash $ZYNTHIAN_RECIPE_DIR/install_fluidplug.sh
-bash $ZYNTHIAN_RECIPE_DIR/install_mod-mda.sh
-bash $ZYNTHIAN_RECIPE_DIR/install_midifilter.lv2.sh
-bash $ZYNTHIAN_RECIPE_DIR/install_mod-utilities.sh
-bash $ZYNTHIAN_RECIPE_DIR/install_step-seq.sh
-bash $ZYNTHIAN_RECIPE_DIR/install_openav-artyfx.sh
-bash $ZYNTHIAN_RECIPE_DIR/install-calf.sh
-bash $ZYNTHIAN_RECIPE_DIR/install_eq10q.sh
-bash $ZYNTHIAN_RECIPE_DIR/install_guitarix.sh
-bash $ZYNTHIAN_RECIPE_DIR/install_mclk.sh
-bash $ZYNTHIAN_RECIPE_DIR/install_mod-caps.sh
-bash $ZYNTHIAN_RECIPE_DIR/install_mod-distortion.sh
-bash $ZYNTHIAN_RECIPE_DIR/install_mod-pitchshifter.sh
-bash $ZYNTHIAN_RECIPE_DIR/install_mod-tap.sh
-bash $ZYNTHIAN_RECIPE_DIR/install_sooperlooper-lv2-plugin.sh
-bash $ZYNTHIAN_RECIPE_DIR/install_sosynth.sh
-bash $ZYNTHIAN_RECIPE_DIR/install_fat1.sh
-bash $ZYNTHIAN_RECIPE_DIR/install_gxslowgear.sh
-bash $ZYNTHIAN_RECIPE_DIR/install_gxswitchlesswah.sh
-bash $ZYNTHIAN_RECIPE_DIR/install_gxvintagefuzz.sh
-#bash $ZYNTHIAN_RECIPE_DIR/install_gxsupertoneblender.sh
-#bash $ZYNTHIAN_RECIPE_DIR/install_gxsuperfuzz.sh
-#bash $ZYNTHIAN_RECIPE_DIR/install_gxvoodofuzz.sh
-#bash $ZYNTHIAN_RECIPE_DIR/install_gxsupersaturator.sh
-#bash $ZYNTHIAN_RECIPE_DIR/install_gxhyperion.sh
-bash $ZYNTHIAN_RECIPE_DIR/install_obxd_bank.sh
-bash $ZYNTHIAN_RECIPE_DIR/install_helm.sh
-bash $ZYNTHIAN_RECIPE_DIR/install_infamous.sh
-bash $ZYNTHIAN_RECIPE_DIR/install_padthv1.sh
-bash $ZYNTHIAN_RECIPE_DIR/install_distrho_ports.sh
-bash $ZYNTHIAN_RECIPE_DIR/install_dpf_plugins.sh
+$ZYNTHIAN_RECIPE_DIR/install_fluidsynth.sh
+#$ZYNTHIAN_RECIPE_DIR/install_mod-setbfree.sh
+#$ZYNTHIAN_RECIPE_DIR/install_zynaddsubfx.sh
+#$ZYNTHIAN_RECIPE_DIR/install_linuxsampler.sh
+$ZYNTHIAN_RECIPE_DIR/install_fluidplug.sh
+$ZYNTHIAN_RECIPE_DIR/install_mod-mda.sh
+$ZYNTHIAN_RECIPE_DIR/install_midifilter.lv2.sh
+$ZYNTHIAN_RECIPE_DIR/install_mod-utilities.sh
+$ZYNTHIAN_RECIPE_DIR/install_step-seq.sh
+$ZYNTHIAN_RECIPE_DIR/install_openav-artyfx.sh
+#$ZYNTHIAN_RECIPE_DIR/install_calf.sh => Doesn't link in stretch! => Installing from repository an older version
+$ZYNTHIAN_RECIPE_DIR/install_eq10q.sh
+$ZYNTHIAN_RECIPE_DIR/install_guitarix.sh
+$ZYNTHIAN_RECIPE_DIR/install_mclk.sh
+$ZYNTHIAN_RECIPE_DIR/install_mod-caps.sh
+$ZYNTHIAN_RECIPE_DIR/install_mod-distortion.sh
+$ZYNTHIAN_RECIPE_DIR/install_mod-pitchshifter.sh
+$ZYNTHIAN_RECIPE_DIR/install_mod-tap.sh
+$ZYNTHIAN_RECIPE_DIR/install_sooperlooper-lv2-plugin.sh
+$ZYNTHIAN_RECIPE_DIR/install_sosynth.sh # => Not working because of deprecated "LV2:Event" extension
+$ZYNTHIAN_RECIPE_DIR/install_fat1.sh
+$ZYNTHIAN_RECIPE_DIR/install_gxslowgear.sh
+$ZYNTHIAN_RECIPE_DIR/install_gxswitchlesswah.sh
+$ZYNTHIAN_RECIPE_DIR/install_gxvintagefuzz.sh
+#$ZYNTHIAN_RECIPE_DIR/install_gxsupertoneblender.sh
+#$ZYNTHIAN_RECIPE_DIR/install_gxsuperfuzz.sh
+#$ZYNTHIAN_RECIPE_DIR/install_gxvoodofuzz.sh
+#$ZYNTHIAN_RECIPE_DIR/install_gxsupersaturator.sh
+#$ZYNTHIAN_RECIPE_DIR/install_gxhyperion.sh
+$ZYNTHIAN_RECIPE_DIR/install_obxd_bank.sh
+$ZYNTHIAN_RECIPE_DIR/install_helm.sh
+$ZYNTHIAN_RECIPE_DIR/install_infamous.sh
+$ZYNTHIAN_RECIPE_DIR/install_padthv1.sh
+$ZYNTHIAN_RECIPE_DIR/install_distrho_ports.sh
+$ZYNTHIAN_RECIPE_DIR/install_dpf_plugins.sh
+$ZYNTHIAN_RECIPE_DIR/install_foo-yc20.sh
+$ZYNTHIAN_RECIPE_DIR/install_triceratops.sh
 
 # dcoredump Stuff
-bash $ZYNTHIAN_RECIPE_DIR/install_lvtk.sh
-bash $ZYNTHIAN_RECIPE_DIR/install_dxsyx.sh
-bash $ZYNTHIAN_RECIPE_DIR/install_dexed_dcoredump.sh
+$ZYNTHIAN_RECIPE_DIR/install_lvtk.sh
+$ZYNTHIAN_RECIPE_DIR/install_dxsyx.sh
+$ZYNTHIAN_RECIPE_DIR/install_dexed_dcoredump.sh
 
-bash $ZYNTHIAN_RECIPE_DIR/postinstall_mod-lv2-data.sh
+$ZYNTHIAN_RECIPE_DIR/postinstall_mod-lv2-data.sh
 
 #------------------------------------------------
 # Install v1 suit
@@ -89,13 +91,19 @@ ln -s /usr/lib/lv2/drumkv1.lv2 $ZYNTHIAN_PLUGINS_DIR/lv2
 #------------------------------------------------
 # Install some extra LV2 Plugins (swh, avw, ...)
 #------------------------------------------------
-apt-get -y --no-install-recommends install swh-lv2 lv2vocoder avw.lv2 invada-studio-plugins-lv2
+apt-get -y --no-install-recommends install swh-lv2 lv2vocoder avw.lv2 invada-studio-plugins-lv2 calf-plugins
 ln -s /usr/lib/lv2/*swh.lv2 $ZYNTHIAN_PLUGINS_DIR/lv2
 ln -s /usr/lib/lv2/vocoder.lv2 $ZYNTHIAN_PLUGINS_DIR/lv2
 # Some AVW plugins are broken, so it's disabled by now
 #ln -s /usr/lib/lv2/avw.lv2 $ZYNTHIAN_PLUGINS_DIR/lv2
 ln -s /usr/lib/lv2/invada.lv2 $ZYNTHIAN_PLUGINS_DIR/lv2
-	
+ln -s /usr/lib/lv2/calf.lv2 $ZYNTHIAN_PLUGINS_DIR/lv2
+
+#------------------------------------------------
+# Install some extra LV2 Plugins (Calf, MDA, ...)
+#------------------------------------------------
+#apt-get -y install mda-lv2
+
 #------------------------------------------------
 # Install some LADSPA plugins for LinuxSampler
 #------------------------------------------------
@@ -103,9 +111,4 @@ ln -s /usr/lib/lv2/invada.lv2 $ZYNTHIAN_PLUGINS_DIR/lv2
 apt-get -y install ladspa-sdk wah-plugins tap-plugins vco-plugins swh-plugins ste-plugins rev-plugins omins mcp-plugins invada-studio-plugins-ladspa rubberband-ladspa fil-plugins csladspa cmt caps bs2b-ladspa blop blepvco autotalent ambdec amb-plugins
 
 exit
-
-#------------------------------------------------
-# Install some extra LV2 Plugins (Calf, MDA, ...)
-#------------------------------------------------
-#apt-get install calf-plugins mda-lv2
 
