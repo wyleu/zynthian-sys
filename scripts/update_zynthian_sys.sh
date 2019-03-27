@@ -114,15 +114,14 @@ ZYNTHIAN_AUBIONOTES_OPTIONS_ESC=${ZYNTHIAN_AUBIONOTES_OPTIONS//\//\\\/}
 # Boot Config 
 #------------------------------------------------------------------------------
 
-cp $ZYNTHIAN_SYS_DIR/boot/cmdline.txt /boot
-
-# Detect NO_ZYNTHIAN_UPDATE flag
-if [ -f "/boot/config.txt" ]; then
-	no_update_config=`grep -e ^#NO_ZYNTHIAN_UPDATE /boot/config.txt`
+# Detect NO_ZYNTHIAN_UPDATE flag in the config.txt
+if [ -f "/boot/config.txt" ] && [ -z "$NO_ZYNTHIAN_UPDATE" ]; then
+	NO_ZYNTHIAN_UPDATE=`grep -e ^#NO_ZYNTHIAN_UPDATE /boot/config.txt`
 fi
 
-if [ -z "$no_update_config" ]; then
-	cp $ZYNTHIAN_SYS_DIR/boot/config.txt /boot
+if [ -z "$NO_ZYNTHIAN_UPDATE" ]; then
+	cp -a $ZYNTHIAN_SYS_DIR/boot/cmdline.txt /boot
+	cp -a $ZYNTHIAN_SYS_DIR/boot/config.txt /boot
 
 	echo "SOUNDCARD CONFIG => $SOUNDCARD_CONFIG"
 	sed -i -e "s/#SOUNDCARD_CONFIG#/$SOUNDCARD_CONFIG/g" /boot/config.txt
@@ -142,7 +141,7 @@ cp -a $ZYNTHIAN_SYS_DIR/boot/overlays/* /boot/overlays
 if [ ! -d "$ZYNTHIAN_CONFIG_DIR" ]; then
 	mkdir $ZYNTHIAN_CONFIG_DIR
 fi
-# Copy default config dir if needed ...
+# Copy default envars file if needed ...
 if [ ! -f "$ZYNTHIAN_CONFIG_DIR/zynthian_envars.sh" ]; then
 	cp -a $ZYNTHIAN_SYS_DIR/scripts/zynthian_envars.sh $ZYNTHIAN_CONFIG_DIR
 fi
@@ -264,14 +263,18 @@ if [ -d "/usr/share/aeolus" ]; then
 	fi
 fi
 
-# Copy "etc" config files
-cp -a $ZYNTHIAN_SYS_DIR/etc/modules /etc
-cp -a $ZYNTHIAN_SYS_DIR/etc/inittab /etc
-cp -a $ZYNTHIAN_SYS_DIR/etc/network/* /etc/network
-cp -an $ZYNTHIAN_SYS_DIR/etc/wpa_supplicant/* /etc/wpa_supplicant
-cp -a $ZYNTHIAN_SYS_DIR/etc/dbus-1/* /etc/dbus-1
-cp -a $ZYNTHIAN_SYS_DIR/etc/systemd/* /etc/systemd/system
-cp -a $ZYNTHIAN_SYS_DIR/etc/udev/rules.d/* /etc/udev/rules.d 2>/dev/null
+if [ -z "$NO_ZYNTHIAN_UPDATE" ]; then
+	# Copy "etc" config files
+	cp -a $ZYNTHIAN_SYS_DIR/etc/modules /etc
+	cp -a $ZYNTHIAN_SYS_DIR/etc/inittab /etc
+	cp -a $ZYNTHIAN_SYS_DIR/etc/network/* /etc/network
+	cp -an $ZYNTHIAN_SYS_DIR/etc/wpa_supplicant/* /etc/wpa_supplicant
+	cp -an $ZYNTHIAN_SYS_DIR/etc/dbus-1/* /etc/dbus-1
+	cp -an $ZYNTHIAN_SYS_DIR/etc/security/* /etc/security
+	cp -a $ZYNTHIAN_SYS_DIR/etc/systemd/* /etc/systemd/system
+	cp -a $ZYNTHIAN_SYS_DIR/etc/udev/rules.d/* /etc/udev/rules.d 2>/dev/null
+	cp -a $ZYNTHIAN_SYS_DIR/etc/avahi/* /etc/avahi
+fi
 
 # X11 Display config
 if [ ! -d "/etc/X11/xorg.conf.d" ]; then

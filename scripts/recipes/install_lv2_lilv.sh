@@ -9,7 +9,14 @@ cd lv2
 ./waf build
 ./waf install
 ./waf clean
-ln -s /usr/local/include/lv2/lv2.h /usr/local/include/lv2.h
+
+if [ ! -f "/usr/local/include/lv2.h" ]; then
+	ln -s /usr/local/include/lv2/lv2.h /usr/local/include/lv2.h
+fi
+
+if [ ! -f "/usr/local/lib/pkgconfig/lv2core.pc" ]; then
+	ln -s /usr/local/lib/pkgconfig/lv2.pc /usr/local/lib/pkgconfig/lv2core.pc
+fi
 cd ..
 
 git clone --recursive https://github.com/drobilla/serd.git
@@ -62,3 +69,4 @@ cd lilv_python_examples
 2to3 -w *.py
 export PYTHONPATH="/usr/local/lib/python3/dist-packages"
 python3 lv2ls.py
+

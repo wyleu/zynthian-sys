@@ -24,6 +24,8 @@
 
 source zynthian_envars.sh
 
+export DEBIAN_FRONTEND=noninteractive
+
 #------------------------------------------------
 # Update System & Firmware
 #------------------------------------------------
@@ -35,7 +37,7 @@ apt-get -y dist-upgrade
 
 # Install required dependencies if needed
 apt-get -y install apt-utils
-apt-get -y install sudo apt-transport-https software-properties-common htpdate parted
+apt-get -y install sudo apt-transport-https software-properties-common htpdate parted dirmngr
 
 # Set here default config
 [ -n "$ZYNTHIAN_INCLUDE_RPI_UPDATE" ] || ZYNTHIAN_INCLUDE_RPI_UPDATE=yes
@@ -47,7 +49,6 @@ apt-get -y install sudo apt-transport-https software-properties-common htpdate p
 if [ "$ZYNTHIAN_INCLUDE_RPI_UPDATE" == "yes" ]; then
     apt-get -y install rpi-update
 fi
-
 
 # Adjust System Date/Time
 htpdate 0.europe.pool.ntp.org
@@ -75,15 +76,14 @@ apt-get update
 #------------------------------------------------
 
 # System
-apt-get -y install systemd dhcpcd-dbus avahi-daemon usbmount usbutils
-apt-get -y install xinit xserver-xorg-video-fbdev x11-xserver-utils xinput
-apt-get -y install wpasupplicant firmware-brcm80211 firmware-atheros firmware-ralink firmware-realtek atmel-firmware wireless-tools
 apt-get -y remove isc-dhcp-client
-apt-get -y remove libgl1-mesa-dri
+apt-get -y install systemd dhcpcd-dbus avahi-daemon usbmount usbutils
+apt-get -y install xinit xserver-xorg-video-fbdev x11-xserver-utils xinput libgl1-mesa-dri
+apt-get -y install wpasupplicant firmware-brcm80211 firmware-atheros firmware-ralink firmware-realtek atmel-firmware wireless-tools
 
 # CLI Tools
 apt-get -y install raspi-config psmisc tree joe nano vim
-apt-get -y install fbi scrot mpg123 p7zip-full i2c-tools mplayer
+apt-get -y install fbi scrot mpg123 p7zip-full i2c-tools mplayer xloadimage imagemagick
 apt-get -y install evtest tslib libts-bin # touchscreen tools
 #apt-get install python-smbus (i2c with python)
 
@@ -97,7 +97,7 @@ rm -f firmware-brcm80211_20161130-3+rpt3_all.deb
 #------------------------------------------------
 
 #Tools
-apt-get -y install build-essential git swig subversion pkg-config autoconf automake premake gettext intltool libtool libtool-bin cmake cmake-curses-gui flex bison ngrep qt5-qmake qt4-qmake qt5-default gobjc++
+apt-get -y install build-essential git swig subversion pkg-config autoconf automake premake gettext intltool libtool libtool-bin cmake cmake-curses-gui flex bison ngrep qt5-qmake qt4-qmake qt5-default gobjc++ ruby rake xsltproc
 
 # Libraries
 apt-get -y --force-yes --no-install-recommends install wiringpi libfftw3-dev libmxml-dev zlib1g-dev fluid \
@@ -115,8 +115,8 @@ libavformat-dev libswscale-dev libavcodec-dev libqt4-dev qtbase5-dev qtdeclarati
 #libgd2-xpm-dev
 
 # Python
-apt-get -y install python python-dev cython python-dbus
-apt-get -y install python3 python3-dev cython3 python3-cffi python3-tk python3-dbus python3-mpmath python3-pil python3-pil.imagetk
+apt-get -y install python python-dev cython python-dbus python-setuptools
+apt-get -y install python3 python3-dev cython3 python3-cffi python3-tk python3-dbus python3-mpmath python3-pil python3-pil.imagetk python3-setuptools python3-PyQt4
 
 if [ "$ZYNTHIAN_INCLUDE_PIP" == "yes" ]; then
     apt-get -y install python-pip python3-pip
@@ -129,7 +129,7 @@ pip3 install jsonpickle
 pip3 install oyaml
 pip3 install psutil
 pip3 install pexpect
-
+pip3 install requests
 
 #************************************************
 #------------------------------------------------
@@ -240,6 +240,17 @@ echo "source $ZYNTHIAN_SYS_DIR/etc/profile.zynthian" >> /root/.profile
 
 # On first boot, resize SD partition, regenerate keys, etc.
 $ZYNTHIAN_SYS_DIR/scripts/set_first_boot.sh
+
+
+#************************************************
+#------------------------------------------------
+# Install Custom Kernel 4.18 from HifiBerry
+# => Needed for DAC+ ADC support!
+#------------------------------------------------
+#************************************************
+
+$ZYNTHIAN_RECIPE_DIR/install_kernel_hb_dacadc.sh
+
 
 #************************************************
 #------------------------------------------------

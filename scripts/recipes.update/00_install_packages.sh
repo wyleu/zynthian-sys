@@ -1,4 +1,8 @@
 
+# 2019-02-12: Delete Autostatic Repository from sources list to avoid apt error messages
+if [ -f "/etc/apt/sources.list.d/autostatic-audio-raspbian.list" ]; then
+	rm -f "/etc/apt/sources.list.d/autostatic-audio-raspbian.list"
+fi
 
 # 2017-11-21 => tornadostreamform, required by zynthian-webconf
 res=`pip3 show tornadostreamform`
@@ -67,17 +71,19 @@ if [ ! -d "$ZYNTHIAN_SW_DIR/plugins/obxd_bank" ]; then
 fi
 
 # 2018-05-22 => PureData Integration
-#if [ ! -d "$ZYNTHIAN_MY_DATA_DIR/presets/puredata" ]; then
-res=`pip3 show oyaml`
-if [ "$res" == "" ]; then
+res=`dpkg -s puredata 2>&1 | grep "Status:"`
+if [ "$res" != "Status: install ok installed" ]; then
 	apt-get -y update
 	apt-get -y upgrade
-	apt-get -y install puredata puredata-core puredata-utils python3-yaml
-	apt-get -y install pd-lua pd-moonlib pd-pdstring pd-markex pd-iemnet pd-plugin pd-ekext pd-import pd-bassemu pd-readanysf pd-pddp pd-zexy pd-list-abs pd-flite pd-windowing pd-fftease pd-bsaylor pd-osc pd-sigpack pd-hcs pd-pdogg pd-purepd pd-beatpipe pd-freeverb pd-iemlib pd-smlib pd-hid pd-csound pd-aubio pd-earplug pd-wiimote pd-pmpd pd-motex pd-arraysize pd-ggee pd-chaos pd-iemmatrix pd-comport pd-libdir pd-vbap pd-cxc pd-lyonpotpourri pd-iemambi pd-pdp pd-mjlib pd-cyclone pd-jmmmp pd-3dp pd-boids pd-mapping pd-maxlib
-	pip3 install oyaml
+	apt-get -y install puredata puredata-core puredata-utils python3-yaml pd-lua pd-moonlib pd-pdstring pd-markex pd-iemnet pd-plugin pd-ekext pd-import pd-bassemu pd-readanysf pd-pddp pd-zexy pd-list-abs pd-flite pd-windowing pd-fftease pd-bsaylor pd-osc pd-sigpack pd-hcs pd-pdogg pd-purepd pd-beatpipe pd-freeverb pd-iemlib pd-smlib pd-hid pd-csound pd-aubio pd-earplug pd-wiimote pd-pmpd pd-motex pd-arraysize pd-ggee pd-chaos pd-iemmatrix pd-comport pd-libdir pd-vbap pd-cxc pd-lyonpotpourri pd-iemambi pd-pdp pd-mjlib pd-cyclone pd-jmmmp pd-3dp pd-boids pd-mapping pd-maxlib
 	systemctl enable a2jmidid
 	systemctl start a2jmidid
 	touch $REBOOT_FLAGFILE
+fi
+
+res=`pip3 show oyaml`
+if [ "$res" == "" ]; then
+	pip3 install oyaml
 fi
 
 # 2018-05-29: Install WIFI firmware from non-free repository
@@ -121,6 +127,7 @@ fi
 # 2018-08-09: Install mplayer (multimedia player)
 res=`dpkg -s mplayer 2>&1 | grep "Status:"`
 if [ "$res" != "Status: install ok installed" ]; then
+	apt-get -y update
 	apt-get -y install mplayer
 fi
 
@@ -160,4 +167,30 @@ fi
 # 2018-11-12: Install Triceratops LV2-plugin: Analogue Synth
 if [ ! -d "$ZYNTHIAN_PLUGINS_SRC_DIR/triceratops.lv2" ]; then
 	$ZYNTHIAN_RECIPE_DIR/install_triceratops.sh
+fi
+
+# 2019-02-12: Install Raffo LV2-plugin: MiniMoog Emulator
+if [ ! -d "$ZYNTHIAN_PLUGINS_SRC_DIR/moog" ]; then
+	apt-get -y update
+	apt-get -y install --no-install-recommends libgtkmm-2.4-dev
+	$ZYNTHIAN_RECIPE_DIR/install_raffo.sh
+fi
+
+# 2019-02-13: Install Kernel 4.18 from HifiBerry
+if [ ! -f "/boot/kernel7-hb.img" ]; then
+	$ZYNTHIAN_RECIPE_DIR/install_kernel_hb_dacadc.sh
+fi
+
+# 2019-02-28: Install mido & python-rtmidi
+res=`pip3 show mido`
+if [ "$res" == "" ]; then
+	pip3 install mido python-rtmidi
+fi
+
+# 2019-03-07: Install xloadimage & imagemagick used by improved error splash
+res=`dpkg -s xloadimage 2>&1 | grep "Status:"`
+if [ "$res" != "Status: install ok installed" ]; then
+	apt-get -y update
+	apt-get -y upgrade
+	apt-get -y install xloadimage imagemagick
 fi
