@@ -44,7 +44,7 @@ if [ "$ZYNTHIAN_INCLUDE_RPI_UPDATE" == "yes" ]; then
 fi
 
 # Adjust System Date/Time
-htpdate 0.europe.pool.ntp.org
+htpdate -s www.pool.ntp.org www.wikipedia.org 0.europe.pool.ntp.org www.google.co.uk
 
 # Update Firmware
 if [ "$ZYNTHIAN_INCLUDE_RPI_UPDATE" == "yes" ]; then
@@ -97,8 +97,8 @@ libfltk1.3-dev libncurses5-dev liblo-dev dssi-dev libjpeg-dev libxpm-dev libcair
 libasound2-dev dbus-x11 jackd2 libjack-jackd2-dev a2jmidid laditools liblash-compat-dev libffi-dev \
 fontconfig-config libfontconfig1-dev libxft-dev libexpat-dev libglib2.0-dev libgettextpo-dev libsqlite3-dev \
 libglibmm-2.4-dev libeigen3-dev libsndfile-dev libsamplerate-dev libarmadillo-dev libreadline-dev \
-lv2-c++-tools python3-numpy-dev libavcodec56 libavformat56 libavutil54 libavresample2 python3-pyqt4 libxi-dev \
-libgtk2.0-dev libgtkmm-2.4-dev liblrdf-dev libboost-system-dev libzita-convolver-dev libzita-resampler-dev \
+lv2-c++-tools libavcodec56 libavformat56 libavutil54 libavresample2 libxi-dev libgtk2.0-dev \
+libgtkmm-2.4-dev liblrdf-dev libboost-system-dev libzita-convolver-dev libzita-resampler-dev \
 fonts-roboto libxcursor-dev libxinerama-dev libcurl4-openssl-dev mesa-common-dev libgl1-mesa-dev libfreetype6-dev \
 libavformat-dev libswscale-dev libavcodec-dev libqt5-dev libqt4-dev
 
@@ -108,15 +108,12 @@ libavformat-dev libswscale-dev libavcodec-dev libqt5-dev libqt4-dev
 
 # Python
 apt-get -y install python python-dev python-pip cython python-dbus python-setuptools
-apt-get -y install python3 python3-dev python3-pip cython3 python3-cffi python3-tk python3-dbus python3-mpmath python3-pil python3-pil.imagetk python3-setuptools python3-PyQt4
-pip3 install websocket-client
-pip3 install tornado==4.1
-pip3 install tornadostreamform
-pip3 install jsonpickle
-pip3 install oyaml
-pip3 install psutil
-pip3 install pexpect
-pip3 install requests
+apt-get -y install python3 python3-dev python3-pip cython3 python3-cffi python3-tk python3-dbus python3-mpmath python3-pil python3-pil.imagetk python3-setuptools python3-pyqt4 python3-numpy-dev
+
+pip3 install tornado==4.1 tornadostreamform websocket-client
+pip3 install jsonpickle oyaml psutil pexpect requests
+pip3 install mido python-rtmidi
+
 
 #************************************************
 #------------------------------------------------
@@ -197,8 +194,8 @@ echo "zynthian" > /etc/hostname
 sed -i -e "s/minibian/zynthian/" /etc/hosts
 
 # Run configuration script
-$ZYNTHIAN_SYS_DIR/scripts/update_zynthian_sys.sh
 $ZYNTHIAN_SYS_DIR/scripts/update_zynthian_data.sh
+$ZYNTHIAN_SYS_DIR/scripts/update_zynthian_sys.sh
 
 # Systemd Services
 systemctl daemon-reload
@@ -228,16 +225,6 @@ echo "source $ZYNTHIAN_SYS_DIR/etc/profile.zynthian" >> /root/.profile
 
 # On first boot, resize SD partition, regenerate keys, etc.
 $ZYNTHIAN_SYS_DIR/scripts/set_first_boot.sh
-
-
-#************************************************
-#------------------------------------------------
-# Install Custom Kernel 4.18 from HifiBerry
-# => Needed for DAC+ ADC support!
-#------------------------------------------------
-#************************************************
-
-$ZYNTHIAN_RECIPE_DIR/install_kernel_hb_dacadc.sh
 
 
 #************************************************
@@ -363,9 +350,10 @@ $ZYNTHIAN_RECIPE_DIR/install_pd_extra_abl_link.sh
 #------------------------------------------------
 #$ZYNTHIAN_RECIPE_DIR/install_aminogfx.sh
 
+
 #************************************************
 #------------------------------------------------
-# End & Clean
+# Final Configuration
 #------------------------------------------------
 #************************************************
 
@@ -374,6 +362,16 @@ if [ ! -d "$ZYNTHIAN_CONFIG_DIR/updates" ]; then
 	mkdir "$ZYNTHIAN_CONFIG_DIR/updates"
 fi
 touch "$ZYNTHIAN_CONFIG_DIR/updates/omega"
+
+# Run configuration script before ending
+$ZYNTHIAN_SYS_DIR/scripts/update_zynthian_sys.sh
+
+
+#************************************************
+#------------------------------------------------
+# End & Clean
+#------------------------------------------------
+#************************************************
 
 # Clean
 apt-get -y autoremove # Remove unneeded packages

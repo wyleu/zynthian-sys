@@ -51,7 +51,7 @@ if [ "$ZYNTHIAN_INCLUDE_RPI_UPDATE" == "yes" ]; then
 fi
 
 # Adjust System Date/Time
-htpdate 0.europe.pool.ntp.org
+htpdate -s www.pool.ntp.org www.wikipedia.org 0.europe.pool.ntp.org www.google.co.uk
 
 # Update Firmware
 if [ "$ZYNTHIAN_INCLUDE_RPI_UPDATE" == "yes" ]; then
@@ -81,6 +81,10 @@ apt-get -y install systemd dhcpcd-dbus avahi-daemon usbmount usbutils
 apt-get -y install xinit xserver-xorg-video-fbdev x11-xserver-utils xinput libgl1-mesa-dri
 apt-get -y install wpasupplicant firmware-brcm80211 firmware-atheros firmware-ralink firmware-realtek atmel-firmware wireless-tools
 
+# Alternate XServer with some 2D acceleration
+#apt-get -y install xserver-xorg-video-fbturbo
+#ln -s /usr/lib/arm-linux-gnueabihf/xorg/modules/drivers/fbturbo_drv.so /usr/lib/xorg/modules/drivers
+
 # CLI Tools
 apt-get -y install raspi-config psmisc tree joe nano vim
 apt-get -y install fbi scrot mpg123 p7zip-full i2c-tools mplayer xloadimage imagemagick
@@ -105,8 +109,8 @@ libfltk1.3-dev libncurses5-dev liblo-dev dssi-dev libjpeg-dev libxpm-dev libcair
 libasound2-dev dbus-x11 jackd2 libjack-jackd2-dev a2jmidid laditools liblash-compat-dev libffi-dev \
 fontconfig-config libfontconfig1-dev libxft-dev libexpat-dev libglib2.0-dev libgettextpo-dev libsqlite3-dev \
 libglibmm-2.4-dev libeigen3-dev libsndfile-dev libsamplerate-dev libarmadillo-dev libreadline-dev \
-lv2-c++-tools python3-numpy-dev libavcodec57 libavformat57 libavutil55 libavresample3 python3-pyqt4 libxi-dev  \
-libgtk2.0-dev libgtkmm-2.4-dev liblrdf-dev libboost-system-dev libzita-convolver-dev libzita-resampler-dev \
+lv2-c++-tools libavcodec57 libavformat57 libavutil55 libavresample3 libxi-dev libgtk2.0-dev \
+libgtkmm-2.4-dev liblrdf-dev libboost-system-dev libzita-convolver-dev libzita-resampler-dev \
 fonts-roboto libxcursor-dev libxinerama-dev mesa-common-dev libgl1-mesa-dev libfreetype6-dev \
 libavformat-dev libswscale-dev libavcodec-dev libqt4-dev qtbase5-dev qtdeclarative5-dev
 
@@ -116,20 +120,16 @@ libavformat-dev libswscale-dev libavcodec-dev libqt4-dev qtbase5-dev qtdeclarati
 
 # Python
 apt-get -y install python python-dev cython python-dbus python-setuptools
-apt-get -y install python3 python3-dev cython3 python3-cffi python3-tk python3-dbus python3-mpmath python3-pil python3-pil.imagetk python3-setuptools python3-PyQt4
+apt-get -y install python3 python3-dev cython3 python3-cffi python3-tk python3-dbus python3-mpmath python3-pil python3-pil.imagetk python3-setuptools python3-pyqt4 python3-numpy-dev
 
 if [ "$ZYNTHIAN_INCLUDE_PIP" == "yes" ]; then
     apt-get -y install python-pip python3-pip
 fi
 
-pip3 install websocket-client
-pip3 install tornado==4.1
-pip3 install tornadostreamform
-pip3 install jsonpickle
-pip3 install oyaml
-pip3 install psutil
-pip3 install pexpect
-pip3 install requests
+pip3 install tornado==4.1 tornadostreamform websocket-client
+pip3 install jsonpickle oyaml psutil pexpect requests
+pip3 install mido python-rtmidi
+
 
 #************************************************
 #------------------------------------------------
@@ -209,8 +209,8 @@ if [ "$ZYNTHIAN_CHANGE_HOSTNAME" == "yes" ]; then
 fi
 
 # Run configuration script
-$ZYNTHIAN_SYS_DIR/scripts/update_zynthian_sys.sh
 $ZYNTHIAN_SYS_DIR/scripts/update_zynthian_data.sh
+$ZYNTHIAN_SYS_DIR/scripts/update_zynthian_sys.sh
 
 # Systemd Services
 systemctl daemon-reload
@@ -240,16 +240,6 @@ echo "source $ZYNTHIAN_SYS_DIR/etc/profile.zynthian" >> /root/.profile
 
 # On first boot, resize SD partition, regenerate keys, etc.
 $ZYNTHIAN_SYS_DIR/scripts/set_first_boot.sh
-
-
-#************************************************
-#------------------------------------------------
-# Install Custom Kernel 4.18 from HifiBerry
-# => Needed for DAC+ ADC support!
-#------------------------------------------------
-#************************************************
-
-$ZYNTHIAN_RECIPE_DIR/install_kernel_hb_dacadc.sh
 
 
 #************************************************
@@ -376,9 +366,10 @@ $ZYNTHIAN_RECIPE_DIR/install_pd_extra_abl_link.sh
 #------------------------------------------------
 #$ZYNTHIAN_RECIPE_DIR/install_aminogfx.sh
 
+
 #************************************************
 #------------------------------------------------
-# End & Clean
+# Final Configuration
 #------------------------------------------------
 #************************************************
 
@@ -387,6 +378,16 @@ if [ ! -d "$ZYNTHIAN_CONFIG_DIR/updates" ]; then
 	mkdir "$ZYNTHIAN_CONFIG_DIR/updates"
 fi
 touch "$ZYNTHIAN_CONFIG_DIR/updates/omega"
+
+# Run configuration script before ending
+$ZYNTHIAN_SYS_DIR/scripts/update_zynthian_sys.sh
+
+
+#************************************************
+#------------------------------------------------
+# End & Clean
+#------------------------------------------------
+#************************************************
 
 # Clean
 apt-get -y autoremove # Remove unneeded packages
