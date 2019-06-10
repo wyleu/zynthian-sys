@@ -36,15 +36,17 @@ apt-get -y upgrade
 apt-get -y dist-upgrade
 
 # Install required dependencies if needed
-apt-get -y install apt-utils
-apt-get -y install sudo apt-transport-https software-properties-common rpi-update htpdate parted dirmngr
+apt-get -y install apt-utils apt-transport-https rpi-update sudo software-properties-common htpdate parted dirmngr
 
-if [ "$ZYNTHIAN_INCLUDE_RPI_UPDATE" == "yes" ]; then
-    apt-get -y install rpi-update
-fi
+# Set here default config
+[ -n "$ZYNTHIAN_INCLUDE_RPI_UPDATE" ] || ZYNTHIAN_INCLUDE_RPI_UPDATE=yes
+[ -n "$ZYNTHIAN_INCLUDE_PIP" ] || ZYNTHIAN_INCLUDE_PIP=yes
+[ -n "$ZYNTHIAN_CHANGE_HOSTNAME" ] || ZYNTHIAN_CHANGE_HOSTNAME=yes
+[ -n "$ZYNTHIAN_SYS_REPO" ] || ZYNTHIAN_SYS_REPO=https://github.com/zynthian/zynthian-sys.git
+[ -n "$ZYNTHIAN_SYS_BRANCH" ] || ZYNTHIAN_SYS_BRANCH=master
 
 # Adjust System Date/Time
-htpdate -s www.pool.ntp.org www.wikipedia.org 0.europe.pool.ntp.org www.google.co.uk
+htpdate -s www.pool.ntp.org wikipedia.org google.com
 
 # Update Firmware
 if [ "$ZYNTHIAN_INCLUDE_RPI_UPDATE" == "yes" ]; then
@@ -71,7 +73,10 @@ apt-get update
 apt-get -y remove isc-dhcp-client
 apt-get -y install systemd dhcpcd-dbus avahi-daemon usbmount usbutils
 apt-get -y install xinit xserver-xorg-video-fbdev x11-xserver-utils xinput libgl1-mesa-swx11 libgl1-mesa-dri
-apt-get -y install wpasupplicant firmware-brcm80211 firmware-atheros firmware-ralink firmware-realtek atmel-firmware wireless-tools
+
+apt-get -y install wpasupplicant wireless-tools iw hostapd dnsmasq
+apt-get -y install firmware-brcm80211 firmware-atheros firmware-realtek atmel-firmware firmware-misc-nonfree 
+#firmware-ralink
 
 # CLI Tools
 apt-get -y install raspi-config psmisc tree joe nano vim
@@ -121,20 +126,20 @@ pip3 install mido python-rtmidi
 # Install Zynthian Software from repositories
 #------------------------------------------------
 #************************************************
+
 mkdir $ZYNTHIAN_DIR
-mkdir $ZYNTHIAN_CONFIG_DIR
 
 # Zyncoder library 
 cd $ZYNTHIAN_DIR
 git clone https://github.com/zynthian/zyncoder.git
-mkdir zyncoder/build
-cd zyncoder/build
-cmake ..
-make
+./zyncoder/build.sh
 
 # Zynthian UI
 cd $ZYNTHIAN_DIR
 git clone https://github.com/zynthian/zynthian-ui.git
+if [ -d "zynthian-ui/jackpeak" ]; then
+	./zynthian-ui/jackpeak/build.sh
+fi
 
 # Zynthian System Scripts and Config files
 cd $ZYNTHIAN_DIR
@@ -148,10 +153,8 @@ git clone https://github.com/zynthian/zynthian-data.git
 cd $ZYNTHIAN_DIR
 git clone https://github.com/zynthian/zynthian-webconf.git
 
-# Zynthian Plugins => TODO! => Rethink plugins directory!!
-#git clone https://github.com/zynthian/zynthian-plugins.git
-
 # Zynthian emuface => Not very useful here ... but somebody used it
+cd $ZYNTHIAN_DIR
 git clone https://github.com/zynthian/zynthian-emuface.git
 
 # Create needed directories
@@ -165,8 +168,8 @@ mkdir "$ZYNTHIAN_MY_DATA_DIR"
 mkdir "$ZYNTHIAN_MY_DATA_DIR/presets"
 mkdir "$ZYNTHIAN_MY_DATA_DIR/presets/zynaddsubfx"
 mkdir "$ZYNTHIAN_MY_DATA_DIR/presets/zynaddsubfx/XMZ"
-mkdir "$ZYNTHIAN_MY_DATA_DIR/presets/zynaddsubfx/XSZ"
-mkdir "$ZYNTHIAN_MY_DATA_DIR/presets/zynaddsubfx/XLZ"
+#mkdir "$ZYNTHIAN_MY_DATA_DIR/presets/zynaddsubfx/XSZ"
+#mkdir "$ZYNTHIAN_MY_DATA_DIR/presets/zynaddsubfx/XLZ"
 ln -s "$ZYNTHIAN_MY_DATA_DIR/presets/zynaddsubfx" "$ZYNTHIAN_MY_DATA_DIR/zynbanks"
 mkdir "$ZYNTHIAN_MY_DATA_DIR/soundfonts"
 mkdir "$ZYNTHIAN_MY_DATA_DIR/soundfonts/sf2"
@@ -191,27 +194,37 @@ cp -a $ZYNTHIAN_DATA_DIR/mod-pedalboards/*.pedalboard $ZYNTHIAN_MY_DATA_DIR/mod-
 
 # Change Hostname
 echo "zynthian" > /etc/hostname
-sed -i -e "s/minibian/zynthian/" /etc/hosts
+sed -i -e "s/127\.0\.1\.1.*$/127.0.1.1\tzynthian/" /etc/hosts
 
 # Run configuration script
 $ZYNTHIAN_SYS_DIR/scripts/update_zynthian_data.sh
 $ZYNTHIAN_SYS_DIR/scripts/update_zynthian_sys.sh
 
-# Systemd Services
+# Configure Systemd Services
 systemctl daemon-reload
 systemctl enable dhcpcd
-systemctl enable wpa_supplicant
 systemctl enable avahi-daemon
 systemctl disable raspi-config
 systemctl disable cron
 systemctl disable rsyslog
 systemctl disable ntp
 systemctl disable triggerhappy
+systemctl disable packagekit
+systemctl disable polkit
+systemctl disable wpa_supplicant
+systemctl disable hostapd
+systemctl disable dnsmasq
+systemctl disable unattended-upgrades
+systemctl disable packagekit
+systemctl disable polkit
+systemctl mask packagekit
+systemctl mask polkit
 #systemctl disable serial-getty@ttyAMA0.service
 #systemctl disable sys-devices-platform-soc-3f201000.uart-tty-ttyAMA0.device
 systemctl enable backlight
 systemctl enable cpu-performance
 systemctl enable splash-screen
+systemctl enable wifi-setup
 systemctl enable jack2
 systemctl enable mod-ttymidi
 systemctl enable a2jmidid
@@ -233,8 +246,11 @@ $ZYNTHIAN_SYS_DIR/scripts/set_first_boot.sh
 #------------------------------------------------
 #************************************************
 
+# Install Jack2
+$ZYNTHIAN_RECIPE_DIR/install_jack2.sh
+
 # Install alsaseq Python Library
-$ZYNTHIAN_RECIPE_DIR/install_alsaseq.sh
+#$ZYNTHIAN_RECIPE_DIR/install_alsaseq.sh
 
 # Install NTK library
 $ZYNTHIAN_RECIPE_DIR/install_ntk.sh
@@ -349,6 +365,11 @@ $ZYNTHIAN_RECIPE_DIR/install_pd_extra_abl_link.sh
 # Install AminoGFX for Node.js graphics rendering
 #------------------------------------------------
 #$ZYNTHIAN_RECIPE_DIR/install_aminogfx.sh
+
+#------------------------------------------------
+# Install MIDISport firmware
+#------------------------------------------------
+apt -y install midisport-firmware
 
 
 #************************************************

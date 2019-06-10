@@ -23,6 +23,12 @@
 # ****************************************************************************
 
 #------------------------------------------------------------------------------
+# Get System Codebase
+#------------------------------------------------------------------------------
+
+ZYNTHIAN_OS_CODEBASE=`lsb_release -cs`
+
+#------------------------------------------------------------------------------
 # Define config dir if needed
 #------------------------------------------------------------------------------
 
@@ -40,8 +46,9 @@ else
 	source "$ZYNTHIAN_SYS_DIR/scripts/zynthian_envars.sh"
 fi
 
-echo "Updating System configuration ..."
+#------------------------------------------------------------------------------
 
+echo "Updating System configuration ..."
 
 #------------------------------------------------------------------------------
 # Reboot flag-file
@@ -88,12 +95,31 @@ if [ -z "$FRAMEBUFFER" ]; then
 	export FRAMEBUFFER="/dev/fb1"
 fi
 
+if [ -f "/usr/local/bin/jackd" ]; then
+	export JACKD_BIN_PATH="/usr/local/bin"
+else
+	export JACKD_BIN_PATH="/usr/bin"
+fi
+
 if [ -z "$JACKD_OPTIONS" ]; then
 	export JACKD_OPTIONS="-P 70 -t 2000 -s -d alsa -d hw:0 -r 44100 -p 256 -n 2 -X raw"
 fi
 
 if [ -z "$ZYNTHIAN_AUBIONOTES_OPTIONS" ]; then
 	export ZYNTHIAN_AUBIONOTES_OPTIONS="-O complex -t 0.5 -s -88  -p yinfft -l 0.5"
+fi
+
+
+if [ -z "$ZYNTHIAN_HOSTSPOT_NAME" ]; then
+	export ZYNTHIAN_HOSTSPOT_NAME="zynthian"
+fi
+
+if [ -z "$ZYNTHIAN_HOSTSPOT_CHANNEL" ]; then
+	export ZYNTHIAN_HOSTSPOT_CHANNEL="6"
+fi
+
+if [ -z "$ZYNTHIAN_HOSTSPOT_PASSWORD" ]; then
+	export ZYNTHIAN_HOSTSPOT_PASSWORD="raspberry"
 fi
 
 #------------------------------------------------------------------------------
@@ -107,6 +133,8 @@ ZYNTHIAN_CONFIG_DIR_ESC=${ZYNTHIAN_CONFIG_DIR//\//\\\/}
 ZYNTHIAN_SYS_DIR_ESC=${ZYNTHIAN_SYS_DIR//\//\\\/}
 ZYNTHIAN_UI_DIR_ESC=${ZYNTHIAN_UI_DIR//\//\\\/}
 ZYNTHIAN_SW_DIR_ESC=${ZYNTHIAN_SW_DIR//\//\\\/}
+
+JACKD_BIN_PATH_ESC=${JACKD_BIN_PATH//\//\\\/}
 JACKD_OPTIONS_ESC=${JACKD_OPTIONS//\//\\\/}
 ZYNTHIAN_AUBIONOTES_OPTIONS_ESC=${ZYNTHIAN_AUBIONOTES_OPTIONS//\//\\\/}
 
@@ -123,6 +151,10 @@ if [ -z "$NO_ZYNTHIAN_UPDATE" ]; then
 	cp -a $ZYNTHIAN_SYS_DIR/boot/cmdline.txt /boot
 	cp -a $ZYNTHIAN_SYS_DIR/boot/config.txt /boot
 
+	if [ "$ZYNTHIAN_LIMIT_USB_SPEED" == "1" ]; then
+		sed -i '1s/^/dwc_otg.speed=1 /' /boot/cmdline.txt
+	fi
+
 	echo "SOUNDCARD CONFIG => $SOUNDCARD_CONFIG"
 	sed -i -e "s/#SOUNDCARD_CONFIG#/$SOUNDCARD_CONFIG/g" /boot/config.txt
 	
@@ -134,7 +166,7 @@ fi
 cp -a $ZYNTHIAN_SYS_DIR/boot/overlays/* /boot/overlays
 
 #------------------------------------------------------------------------------
-# System Config 
+# Zynthian Config 
 #------------------------------------------------------------------------------
 
 # Create config dir if needed  ...
@@ -158,14 +190,20 @@ sed -i -e "/export ZYNTHIAN_MASTER_MIDI_[^\n]*/d" $ZYNTHIAN_CONFIG_DIR/zynthian_
 sed -i -e "/export ZYNTHIAN_PRESET_PRELOAD_NOTEON[^\n]*/d" $ZYNTHIAN_CONFIG_DIR/zynthian_envars.sh
 sed -i -e "s/zynthian-data\/midi-profiles/zynthian-my-data\/midi-profiles/g" $ZYNTHIAN_CONFIG_DIR/zynthian_envars.sh
 
+# Setup MIDI-profiles data directory
+if [ ! -d "$ZYNTHIAN_MY_DATA_DIR/midi-profiles" ]; then
+	mkdir "$ZYNTHIAN_MY_DATA_DIR/midi-profiles"
+	cp "$ZYNTHIAN_SYS_DIR/config/default_midi_profile.sh" "$ZYNTHIAN_MY_DATA_DIR/midi-profiles/default.sh"
+fi
+
 # Setup my-data presets subtree
 if [ ! -d "$ZYNTHIAN_MY_DATA_DIR/presets" ]; then
 	cd $ZYNTHIAN_MY_DATA_DIR
 	mkdir presets
 	mkdir presets/zynaddsubfx
 	mkdir presets/zynaddsubfx/XMZ
-	mkdir presets/zynaddsubfx/XSZ
-	mkdir presets/zynaddsubfx/XLZ
+	#mkdir presets/zynaddsubfx/XSZ
+	#mkdir presets/zynaddsubfx/XLZ
 	mv zynbanks/* presets/zynaddsubfx
 	rm -rf zynbanks
 	ln -s presets/xiz zynbanks
@@ -234,12 +272,6 @@ if [ ! -f "$ZYNTHIAN_CONFIG_DIR/jalv_plugins.json" ]; then
 	cp "$ZYNTHIAN_SYS_DIR/config/default_jalv_plugins.json" "$ZYNTHIAN_CONFIG_DIR/jalv_plugins.json"
 fi
 
-# Setup MIDI-profiles data directory
-if [ ! -d "$ZYNTHIAN_MY_DATA_DIR/midi-profiles" ]; then
-	mkdir "$ZYNTHIAN_MY_DATA_DIR/midi-profiles"
-	cp "$ZYNTHIAN_SYS_DIR/config/default_midi_profile.sh" "$ZYNTHIAN_MY_DATA_DIR/midi-profiles/default.sh"
-fi
-
 # Setup Aeolus Config
 if [ -d "/usr/share/aeolus" ]; then
 	# => Delete specific Aeolus config for replacing with the newer one
@@ -263,22 +295,34 @@ if [ -d "/usr/share/aeolus" ]; then
 	fi
 fi
 
+#--------------------------------------
+# System Config
+#--------------------------------------
+
 if [ -z "$NO_ZYNTHIAN_UPDATE" ]; then
 	# Copy "etc" config files
 	cp -a $ZYNTHIAN_SYS_DIR/etc/modules /etc
 	cp -a $ZYNTHIAN_SYS_DIR/etc/inittab /etc
 	cp -a $ZYNTHIAN_SYS_DIR/etc/network/* /etc/network
-	cp -an $ZYNTHIAN_SYS_DIR/etc/wpa_supplicant/* /etc/wpa_supplicant
 	cp -an $ZYNTHIAN_SYS_DIR/etc/dbus-1/* /etc/dbus-1
 	cp -an $ZYNTHIAN_SYS_DIR/etc/security/* /etc/security
 	cp -a $ZYNTHIAN_SYS_DIR/etc/systemd/* /etc/systemd/system
 	cp -a $ZYNTHIAN_SYS_DIR/etc/udev/rules.d/* /etc/udev/rules.d 2>/dev/null
 	cp -a $ZYNTHIAN_SYS_DIR/etc/avahi/* /etc/avahi
+	cp -a $ZYNTHIAN_SYS_DIR/etc/default/* /etc/default
+	# WIFI Hotspot
+	cp -a $ZYNTHIAN_SYS_DIR/etc/hostapd/* /etc/hostapd
+	cp -a $ZYNTHIAN_SYS_DIR/etc/dnsmasq.conf /etc
+	# WIFI Network
+	rm -f /etc/wpa_supplicant/wpa_supplicant.conf
+	cp -an $ZYNTHIAN_SYS_DIR/etc/wpa_supplicant/wpa_supplicant.conf $ZYNTHIAN_CONFIG_DIR
 fi
 
 # Fix usbmount in stretch
-if [ -f "/lib/systemd/system/systemd-udevd.service" ]; then
-	sed -i -e "s/MountFlags\=slave/MountFlags\=shared/g" /lib/systemd/system/systemd-udevd.service
+if [ "$ZYNTHIAN_OS_CODEBASE" == "stretch" ]; then
+	if [ -f "/lib/systemd/system/systemd-udevd.service" ]; then
+		sed -i -e "s/MountFlags\=slave/MountFlags\=shared/g" /lib/systemd/system/systemd-udevd.service
+	fi
 fi
 
 # X11 Display config
@@ -287,6 +331,9 @@ if [ ! -d "/etc/X11/xorg.conf.d" ]; then
 fi
 cp -a $ZYNTHIAN_SYS_DIR/etc/X11/xorg.conf.d/99-fbdev.conf /etc/X11/xorg.conf.d
 sed -i -e "s/#FRAMEBUFFER#/$FRAMEBUFFER_ESC/g" /etc/X11/xorg.conf.d/99-fbdev.conf
+
+# Copy fonts to system directory
+cp -an $ZYNTHIAN_UI_DIR/fonts/* /usr/share/fonts/truetype
 
 # Fix problem with WLAN interfaces numbering
 if [ -f "/etc/udev/rules.d/70-persistent-net.rules" ]; then
@@ -302,8 +349,10 @@ if [ ! -d "/etc/systemd/system/networking.service.d/reduce-timeout.conf" ]; then
 	echo -e "[Service]\nTimeoutStartSec=1\n" > "/etc/systemd/system/networking.service.d/reduce-timeout.conf"
 fi
 
-# Copy fonts to system directory
-cp -an $ZYNTHIAN_UI_DIR/fonts/* /usr/share/fonts/truetype
+# WIFI Hotspot extra config
+sed -i 's/#net.ipv4.ip_forward=1/net.ipv4.ip_forward=1/g' /etc/sysctl.conf
+echo "" > /etc/network/interfaces
+
 
 # User Config (root)
 # => ZynAddSubFX Config
@@ -331,15 +380,52 @@ if [ -d "$soundcard_config_custom_dir" ]; then
 	custom_config "$soundcard_config_custom_dir"
 fi
 
+# Replace config vars in hostapd.conf
+sed -i -e "s/#ZYNTHIAN_HOTSPOT_NAME#/$ZYNTHIAN_HOSTSPOT_NAME/g" /etc/hostapd/hostapd.conf
+sed -i -e "s/#ZYNTHIAN_HOTSPOT_CHANNEL#/$ZYNTHIAN_HOSTSPOT_CHANNEL/g" /etc/hostapd/hostapd.conf
+sed -i -e "s/#ZYNTHIAN_HOTSPOT_PASSWORD#/$ZYNTHIAN_HOSTSPOT_PASSWORD/g" /etc/hostapd/hostapd.conf
+
 # Replace config vars in Systemd service files
+# First Boot service
+sed -i -e "s/#ZYNTHIAN_SYS_DIR#/$ZYNTHIAN_SYS_DIR_ESC/g" /etc/systemd/system/first_boot.service
 # Cpu-performance service
 sed -i -e "s/#ZYNTHIAN_SYS_DIR#/$ZYNTHIAN_SYS_DIR_ESC/g" /etc/systemd/system/cpu-performance.service
+# Wifi-Setup service
+sed -i -e "s/#ZYNTHIAN_CONFIG_DIR#/$ZYNTHIAN_CONFIG_DIR_ESC/g" /etc/systemd/system/wifi-setup.service
+sed -i -e "s/#ZYNTHIAN_SYS_DIR#/$ZYNTHIAN_SYS_DIR_ESC/g" /etc/systemd/system/wifi-setup.service
 # Splash-Screen Service
 sed -i -e "s/#FRAMEBUFFER#/$FRAMEBUFFER_ESC/g" /etc/systemd/system/splash-screen.service
 sed -i -e "s/#ZYNTHIAN_DIR#/$ZYNTHIAN_DIR_ESC/g" /etc/systemd/system/splash-screen.service
 sed -i -e "s/#ZYNTHIAN_UI_DIR#/$ZYNTHIAN_UI_DIR_ESC/g" /etc/systemd/system/splash-screen.service
 sed -i -e "s/#ZYNTHIAN_SYS_DIR#/$ZYNTHIAN_SYS_DIR_ESC/g" /etc/systemd/system/splash-screen.service
 sed -i -e "s/#ZYNTHIAN_CONFIG_DIR#/$ZYNTHIAN_CONFIG_DIR_ESC/g" /etc/systemd/system/splash-screen.service
+
+# Jackd service
+sed -i -e "s/#JACKD_BIN_PATH#/$JACKD_BIN_PATH_ESC/g" /etc/systemd/system/jack2.service
+sed -i -e "s/#JACKD_OPTIONS#/$JACKD_OPTIONS_ESC/g" /etc/systemd/system/jack2.service
+sed -i -e "s/#LV2_PATH#/$LV2_PATH_ESC/g" /etc/systemd/system/jack2.service
+# a2jmidid service
+sed -i -e "s/#JACKD_BIN_PATH#/$JACKD_BIN_PATH_ESC/g" /etc/systemd/system/a2jmidid.service
+# mod-ttymidi service
+sed -i -e "s/#JACKD_BIN_PATH#/$JACKD_BIN_PATH_ESC/g" /etc/systemd/system/mod-ttymidi.service
+# Aubionotes service
+sed -i -e "s/#ZYNTHIAN_AUBIONOTES_OPTIONS#/$ZYNTHIAN_AUBIONOTES_OPTIONS_ESC/g" /etc/systemd/system/aubionotes.service
+sed -i -e "s/#JACKD_BIN_PATH#/$JACKD_BIN_PATH_ESC/g" /etc/systemd/system/aubionotes.service
+# qmidinet service
+sed -i -e "s/#JACKD_BIN_PATH#/$JACKD_BIN_PATH_ESC/g" /etc/systemd/system/qmidinet.service
+# touchosc2midi service
+sed -i -e "s/#JACKD_BIN_PATH#/$JACKD_BIN_PATH_ESC/g" /etc/systemd/system/touchosc2midi.service
+
+# MOD-HOST service
+sed -i -e "s/#LV2_PATH#/$LV2_PATH_ESC/g" /etc/systemd/system/mod-host.service
+sed -i -e "s/#JACKD_BIN_PATH#/$JACKD_BIN_PATH_ESC/g" /etc/systemd/system/mod-host.service
+# MOD-SDK service
+sed -i -e "s/#LV2_PATH#/$LV2_PATH_ESC/g" /etc/systemd/system/mod-sdk.service
+sed -i -e "s/#ZYNTHIAN_SW_DIR#/$ZYNTHIAN_SW_DIR_ESC/g" /etc/systemd/system/mod-sdk.service
+# MOD-UI service
+sed -i -e "s/#LV2_PATH#/$LV2_PATH_ESC/g" /etc/systemd/system/mod-ui.service
+sed -i -e "s/#ZYNTHIAN_SW_DIR#/$ZYNTHIAN_SW_DIR_ESC/g" /etc/systemd/system/mod-ui.service
+
 # Zynthian Service
 sed -i -e "s/#FRAMEBUFFER#/$FRAMEBUFFER_ESC/g" /etc/systemd/system/zynthian.service
 sed -i -e "s/#ZYNTHIAN_DIR#/$ZYNTHIAN_DIR_ESC/g" /etc/systemd/system/zynthian.service
@@ -355,19 +441,6 @@ sed -i -e "s/#ZYNTHIAN_CONFIG_DIR#/$ZYNTHIAN_CONFIG_DIR_ESC/g" /etc/systemd/syst
 # Zynthian Webconf Service
 sed -i -e "s/#ZYNTHIAN_DIR#/$ZYNTHIAN_DIR_ESC/g" /etc/systemd/system/zynthian-webconf.service
 sed -i -e "s/#ZYNTHIAN_CONFIG_DIR#/$ZYNTHIAN_CONFIG_DIR_ESC/g" /etc/systemd/system/zynthian-webconf.service
-# Jackd service
-sed -i -e "s/#JACKD_OPTIONS#/$JACKD_OPTIONS_ESC/g" /etc/systemd/system/jack2.service
-sed -i -e "s/#LV2_PATH#/$LV2_PATH_ESC/g" /etc/systemd/system/jack2.service
-# MOD-HOST service
-sed -i -e "s/#LV2_PATH#/$LV2_PATH_ESC/g" /etc/systemd/system/mod-host.service
-# MOD-SDK service
-sed -i -e "s/#LV2_PATH#/$LV2_PATH_ESC/g" /etc/systemd/system/mod-sdk.service
-sed -i -e "s/#ZYNTHIAN_SW_DIR#/$ZYNTHIAN_SW_DIR_ESC/g" /etc/systemd/system/mod-sdk.service
-# MOD-UI service
-sed -i -e "s/#LV2_PATH#/$LV2_PATH_ESC/g" /etc/systemd/system/mod-ui.service
-sed -i -e "s/#ZYNTHIAN_SW_DIR#/$ZYNTHIAN_SW_DIR_ESC/g" /etc/systemd/system/mod-ui.service
-# Aubionotes service
-sed -i -e "s/#ZYNTHIAN_AUBIONOTES_OPTIONS#/$ZYNTHIAN_AUBIONOTES_OPTIONS_ESC/g" /etc/systemd/system/aubionotes.service
 
 # Reload Systemd scripts
 systemctl daemon-reload
