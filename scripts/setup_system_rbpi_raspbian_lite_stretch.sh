@@ -36,7 +36,8 @@ apt-get -y upgrade
 apt-get -y dist-upgrade
 
 # Install required dependencies if needed
-apt-get -y install apt-utils apt-transport-https rpi-update sudo software-properties-common htpdate parted dirmngr
+apt-get -y install apt-utils apt-transport-https rpi-update sudo software-properties-common parted dirmngr
+#htpdate
 
 # Set here default config
 [ -n "$ZYNTHIAN_INCLUDE_RPI_UPDATE" ] || ZYNTHIAN_INCLUDE_RPI_UPDATE=yes
@@ -46,7 +47,7 @@ apt-get -y install apt-utils apt-transport-https rpi-update sudo software-proper
 [ -n "$ZYNTHIAN_SYS_BRANCH" ] || ZYNTHIAN_SYS_BRANCH=master
 
 # Adjust System Date/Time
-htpdate -s www.pool.ntp.org wikipedia.org google.com
+#htpdate -s www.pool.ntp.org wikipedia.org google.com
 
 # Update Firmware
 if [ "$ZYNTHIAN_INCLUDE_RPI_UPDATE" == "yes" ]; then
@@ -104,7 +105,7 @@ rm -f firmware-brcm80211_20161130-3+rpt3_all.deb
 apt-get -y install build-essential git swig subversion pkg-config autoconf automake premake gettext intltool libtool libtool-bin cmake cmake-curses-gui flex bison ngrep qt5-qmake qt4-qmake qt5-default gobjc++ ruby rake xsltproc vorbis-tools
 
 # Libraries
-apt-get -y --force-yes --no-install-recommends install wiringpi libfftw3-dev libmxml-dev zlib1g-dev fluid \
+apt-get -y --force-yes --no-install-recommends install libfftw3-dev libmxml-dev zlib1g-dev fluid \
 libfltk1.3-dev libncurses5-dev liblo-dev dssi-dev libjpeg-dev libxpm-dev libcairo2-dev libglu1-mesa-dev \
 libasound2-dev dbus-x11 jackd2 libjack-jackd2-dev a2jmidid laditools liblash-compat-dev libffi-dev \
 fontconfig-config libfontconfig1-dev libxft-dev libexpat-dev libglib2.0-dev libgettextpo-dev libsqlite3-dev \
@@ -138,37 +139,8 @@ pip3 install mido python-rtmidi
 #------------------------------------------------
 #************************************************
 
-mkdir $ZYNTHIAN_DIR
-
-# Zyncoder library
-cd $ZYNTHIAN_DIR
-git clone https://github.com/zynthian/zyncoder.git
-./zyncoder/build.sh
-
-# Zynthian UI
-cd $ZYNTHIAN_DIR
-git clone https://github.com/zynthian/zynthian-ui.git
-if [ -d "zynthian-ui/jackpeak" ]; then
-	./zynthian-ui/jackpeak/build.sh
-fi
-
-# Zynthian System Scripts and Config files
-cd $ZYNTHIAN_DIR
-git clone -b ""${ZYNTHIAN_SYS_BRANCH}"" "${ZYNTHIAN_SYS_REPO}"
-
-# Zynthian Data
-cd $ZYNTHIAN_DIR
-git clone https://github.com/zynthian/zynthian-data.git
-
-# Zynthian Webconf Tool
-cd $ZYNTHIAN_DIR
-git clone https://github.com/zynthian/zynthian-webconf.git
-
-# Zynthian emuface => Not very useful here ... but somebody used it
-cd $ZYNTHIAN_DIR
-git clone https://github.com/zynthian/zynthian-emuface.git
-
 # Create needed directories
+mkdir $ZYNTHIAN_DIR
 mkdir "$ZYNTHIAN_CONFIG_DIR"
 mkdir "$ZYNTHIAN_SW_DIR"
 mkdir "$ZYNTHIAN_DATA_DIR/soundfonts"
@@ -188,6 +160,37 @@ mkdir "$ZYNTHIAN_PLUGINS_DIR"
 mkdir "$ZYNTHIAN_PLUGINS_DIR/lv2"
 mkdir "$ZYNTHIAN_MY_PLUGINS_DIR"
 mkdir "$ZYNTHIAN_MY_PLUGINS_DIR/lv2"
+
+# Zynthian System Scripts and Config files
+cd $ZYNTHIAN_DIR
+git clone -b ""${ZYNTHIAN_SYS_BRANCH}"" "${ZYNTHIAN_SYS_REPO}"
+
+# Install WiringPi
+$ZYNTHIAN_RECIPE_DIR/install_wiringpi.sh
+
+# Zyncoder library
+cd $ZYNTHIAN_DIR
+git clone https://github.com/zynthian/zyncoder.git
+./zyncoder/build.sh
+
+# Zynthian UI
+cd $ZYNTHIAN_DIR
+git clone https://github.com/zynthian/zynthian-ui.git
+if [ -d "zynthian-ui/jackpeak" ]; then
+	./zynthian-ui/jackpeak/build.sh
+fi
+
+# Zynthian Data
+cd $ZYNTHIAN_DIR
+git clone https://github.com/zynthian/zynthian-data.git
+
+# Zynthian Webconf Tool
+cd $ZYNTHIAN_DIR
+git clone https://github.com/zynthian/zynthian-webconf.git
+
+# Zynthian emuface => Not very useful here ... but somebody used it
+cd $ZYNTHIAN_DIR
+git clone https://github.com/zynthian/zynthian-emuface.git
 
 #************************************************
 #------------------------------------------------

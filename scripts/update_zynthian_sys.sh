@@ -311,7 +311,13 @@ echo "" > /etc/network/interfaces
 
 # User Config (root)
 # => ZynAddSubFX Config
-cp -a $ZYNTHIAN_SYS_DIR/etc/zynaddsubfxXML.cfg /root/.zynaddsubfxXML.cfg
+if [ -f $ZYNTHIAN_SYS_DIR/etc/zynaddsubfxXML.cfg ]; then
+	cp -a $ZYNTHIAN_SYS_DIR/etc/zynaddsubfxXML.cfg /root/.zynaddsubfxXML.cfg
+fi
+# => vim config
+if [ -f /etc/vim/vimrc.local ]; then
+	cp -a /etc/vim/vimrc.local /root/.vimrc
+fi
 
 # Zynthian Specific Config Files
 if [ ! -f "$ZYNTHIAN_CONFIG_DIR/system_backup_items.txt" ]; then
@@ -338,8 +344,8 @@ fi
 # Alsa Mixer Customizing
 if [ "$SOUNDCARD_NAME" == "AudioInjector" ]; then
 	echo "Configuring Alsa Mixer for AudioInjector ..."
-	amixer -c audioinjector-wm8731-audio sset 'Output Mixer HiFi' unmute
-	amixer -c audioinjector-wm8731-audio cset numid=10,iface=MIXER,name='Line Capture Switch' 1
+	amixer -c audioinjectorpi sset 'Output Mixer HiFi' unmute
+	amixer -c audioinjectorpi cset numid=10,iface=MIXER,name='Line Capture Switch' 1
 fi
 
 # Replace config vars in hostapd.conf
