@@ -51,10 +51,10 @@ ln -s /usr/local/lib/lv2/resize-port.lv2 $ZYNTHIAN_PLUGINS_DIR/lv2
 ln -s /usr/local/lib/lv2/uri-map.lv2 $ZYNTHIAN_PLUGINS_DIR/lv2
 ln -s /usr/local/lib/lv2/schemas.lv2 $ZYNTHIAN_PLUGINS_DIR/lv2
 ln -s /usr/local/lib/lv2/worker.lv2 $ZYNTHIAN_PLUGINS_DIR/lv2
-ln -s /usr/local/lib/lv2/core.lv2 $ZYNTHIAN_PLUGINS_DIR/lv2
 ln -s /usr/local/lib/lv2/options.lv2 $ZYNTHIAN_PLUGINS_DIR/lv2
 ln -s /usr/local/lib/lv2/state.lv2 $ZYNTHIAN_PLUGINS_DIR/lv2
 ln -s /usr/local/lib/lv2/eg-*.lv2 $ZYNTHIAN_PLUGINS_DIR/lv2
+
 #------------------------------------------------
 # Create Plugins Source Code Directory
 #------------------------------------------------
@@ -79,7 +79,7 @@ $ZYNTHIAN_RECIPE_DIR/install_calf.sh
 $ZYNTHIAN_RECIPE_DIR/install_eq10q.sh
 $ZYNTHIAN_RECIPE_DIR/install_mclk.sh
 $ZYNTHIAN_RECIPE_DIR/install_sooperlooper-lv2-plugin.sh
-#$ZYNTHIAN_RECIPE_DIR/install_sosynth.sh # => Not working because of deprecated "LV2:Event" extension
+$ZYNTHIAN_RECIPE_DIR/install_sosynth.sh
 $ZYNTHIAN_RECIPE_DIR/install_fat1.sh
 $ZYNTHIAN_RECIPE_DIR/install_guitarix.sh
 $ZYNTHIAN_RECIPE_DIR/install_gxswitchlesswah.sh
@@ -108,6 +108,15 @@ $ZYNTHIAN_RECIPE_DIR/install_ams-lv2.sh
 $ZYNTHIAN_RECIPE_DIR/install_amsynth.sh
 $ZYNTHIAN_RECIPE_DIR/install_dexed_dcoredump.sh
 $ZYNTHIAN_RECIPE_DIR/install_setBfree-controller.sh
+$ZYNTHIAN_RECIPE_DIR/install_string-machine.sh
+$ZYNTHIAN_RECIPE_DIR/install_midi_display.sh
+$ZYNTHIAN_RECIPE_DIR/install_punk_console.sh
+$ZYNTHIAN_RECIPE_DIR/install_reMID.sh
+#$ZYNTHIAN_RECIPE_DIR/install_ADLplug.sh
+$ZYNTHIAN_RECIPE_DIR/install_miniopl3.sh
+$ZYNTHIAN_RECIPE_DIR/install_ykchorus.sh
+$ZYNTHIAN_RECIPE_DIR/install_meters.sh
+$ZYNTHIAN_RECIPE_DIR/install_gula.sh
 
 $ZYNTHIAN_RECIPE_DIR/install_lv2_plugins_prebuilt.sh
 

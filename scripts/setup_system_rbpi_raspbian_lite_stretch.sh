@@ -88,7 +88,7 @@ apt-get -y install firmware-brcm80211 firmware-atheros firmware-realtek atmel-fi
 
 # CLI Tools
 apt-get -y install raspi-config psmisc tree joe nano vim
-apt-get -y install fbi scrot mpg123 p7zip-full i2c-tools mplayer xloadimage imagemagick
+apt-get -y install fbi scrot mpg123 p7zip-full i2c-tools mplayer xloadimage imagemagick fbcat
 apt-get -y install evtest tslib libts-bin # touchscreen tools
 #apt-get install python-smbus (i2c with python)
 
@@ -105,8 +105,8 @@ rm -f firmware-brcm80211_20161130-3+rpt3_all.deb
 apt-get -y install build-essential git swig subversion pkg-config autoconf automake premake gettext intltool libtool libtool-bin cmake cmake-curses-gui flex bison ngrep qt5-qmake qt4-qmake qt5-default gobjc++ ruby rake xsltproc vorbis-tools
 
 # Libraries
-apt-get -y --force-yes --no-install-recommends install libfftw3-dev libmxml-dev zlib1g-dev fluid \
-libfltk1.3-dev libncurses5-dev liblo-dev dssi-dev libjpeg-dev libxpm-dev libcairo2-dev libglu1-mesa-dev \
+apt-get -y --force-yes --no-install-recommends install libfftw3-dev libmxml-dev zlib1g-dev fluid libfltk1.3-dev \
+libfltk1.3-compat-headers libncurses5-dev liblo-dev dssi-dev libjpeg-dev libxpm-dev libcairo2-dev libglu1-mesa-dev \
 libasound2-dev dbus-x11 jackd2 libjack-jackd2-dev a2jmidid laditools liblash-compat-dev libffi-dev \
 fontconfig-config libfontconfig1-dev libxft-dev libexpat-dev libglib2.0-dev libgettextpo-dev libsqlite3-dev \
 libglibmm-2.4-dev libeigen3-dev libsndfile-dev libsamplerate-dev libarmadillo-dev libreadline-dev \
@@ -140,26 +140,9 @@ pip3 install mido python-rtmidi
 #************************************************
 
 # Create needed directories
-mkdir $ZYNTHIAN_DIR
+mkdir "$ZYNTHIAN_DIR"
 mkdir "$ZYNTHIAN_CONFIG_DIR"
 mkdir "$ZYNTHIAN_SW_DIR"
-mkdir "$ZYNTHIAN_DATA_DIR/soundfonts"
-mkdir "$ZYNTHIAN_DATA_DIR/soundfonts/sf2"
-mkdir "$ZYNTHIAN_DATA_DIR/soundfonts/sfz"
-mkdir "$ZYNTHIAN_DATA_DIR/soundfonts/gig"
-mkdir "$ZYNTHIAN_MY_DATA_DIR"
-mkdir "$ZYNTHIAN_MY_DATA_DIR/presets"
-mkdir "$ZYNTHIAN_MY_DATA_DIR/presets/lv2"
-mkdir "$ZYNTHIAN_MY_DATA_DIR/soundfonts"
-mkdir "$ZYNTHIAN_MY_DATA_DIR/soundfonts/sf2"
-mkdir "$ZYNTHIAN_MY_DATA_DIR/soundfonts/sfz"
-mkdir "$ZYNTHIAN_MY_DATA_DIR/soundfonts/gig"
-mkdir "$ZYNTHIAN_MY_DATA_DIR/snapshots"
-mkdir "$ZYNTHIAN_MY_DATA_DIR/capture"
-mkdir "$ZYNTHIAN_PLUGINS_DIR"
-mkdir "$ZYNTHIAN_PLUGINS_DIR/lv2"
-mkdir "$ZYNTHIAN_MY_PLUGINS_DIR"
-mkdir "$ZYNTHIAN_MY_PLUGINS_DIR/lv2"
 
 # Zynthian System Scripts and Config files
 cd $ZYNTHIAN_DIR
@@ -192,6 +175,35 @@ git clone https://github.com/zynthian/zynthian-webconf.git
 cd $ZYNTHIAN_DIR
 git clone https://github.com/zynthian/zynthian-emuface.git
 
+# Create more needed directories
+mkdir "$ZYNTHIAN_DATA_DIR/soundfonts"
+mkdir "$ZYNTHIAN_DATA_DIR/soundfonts/sf2"
+mkdir "$ZYNTHIAN_DATA_DIR/soundfonts/sfz"
+mkdir "$ZYNTHIAN_DATA_DIR/soundfonts/gig"
+mkdir "$ZYNTHIAN_MY_DATA_DIR"
+mkdir "$ZYNTHIAN_MY_DATA_DIR/presets"
+mkdir "$ZYNTHIAN_MY_DATA_DIR/presets/lv2"
+mkdir "$ZYNTHIAN_MY_DATA_DIR/presets/zynaddsubfx"
+mkdir "$ZYNTHIAN_MY_DATA_DIR/presets/zynaddsubfx/XMZ"
+#mkdir "$ZYNTHIAN_MY_DATA_DIR/presets/zynaddsubfx/XSZ"
+#mkdir "$ZYNTHIAN_MY_DATA_DIR/presets/zynaddsubfx/XLZ"
+mkdir "$ZYNTHIAN_MY_DATA_DIR/presets/puredata"
+mkdir "$ZYNTHIAN_MY_DATA_DIR/presets/puredata/generative"
+mkdir "$ZYNTHIAN_MY_DATA_DIR/presets/puredata/synths"
+mkdir "$ZYNTHIAN_MY_DATA_DIR/presets/mod-ui"
+mkdir "$ZYNTHIAN_MY_DATA_DIR/presets/mod-ui/pedalboards"
+mkdir "$ZYNTHIAN_MY_DATA_DIR/soundfonts"
+mkdir "$ZYNTHIAN_MY_DATA_DIR/soundfonts/sf2"
+mkdir "$ZYNTHIAN_MY_DATA_DIR/soundfonts/sfz"
+mkdir "$ZYNTHIAN_MY_DATA_DIR/soundfonts/gig"
+mkdir "$ZYNTHIAN_MY_DATA_DIR/snapshots"
+mkdir "$ZYNTHIAN_MY_DATA_DIR/capture"
+mkdir "$ZYNTHIAN_MY_DATA_DIR/preset-favorites"
+mkdir "$ZYNTHIAN_PLUGINS_DIR"
+mkdir "$ZYNTHIAN_PLUGINS_DIR/lv2"
+mkdir "$ZYNTHIAN_MY_PLUGINS_DIR"
+mkdir "$ZYNTHIAN_MY_PLUGINS_DIR/lv2"
+
 #************************************************
 #------------------------------------------------
 # System Adjustments
@@ -222,6 +234,7 @@ systemctl disable wpa_supplicant
 systemctl disable hostapd
 systemctl disable dnsmasq
 systemctl disable unattended-upgrades
+systemctl disable apt-daily.timer
 systemctl disable packagekit
 systemctl disable polkit
 systemctl mask packagekit
@@ -252,6 +265,9 @@ $ZYNTHIAN_SYS_DIR/scripts/set_first_boot.sh
 # Compile / Install Required Libraries
 #------------------------------------------------
 #************************************************
+
+# Install some extra packages:
+apt-get -y install jack-midi-clock midisport-firmware
 
 # Install Jack2
 $ZYNTHIAN_RECIPE_DIR/install_jack2.sh
@@ -298,11 +314,17 @@ $ZYNTHIAN_RECIPE_DIR/install_jackclient-python.sh
 # Install QMidiNet (MIDI over IP Multicast)
 $ZYNTHIAN_RECIPE_DIR/install_qmidinet.sh
 
+# Install jackrtpmidid (jack RTP-MIDI daemon)
+$ZYNTHIAN_RECIPE_DIR/install_jackrtpmidid.sh
+
 # Install the DX7 SysEx parser
 $ZYNTHIAN_RECIPE_DIR/install_dxsyx.sh
 
 # Install preset2lv2 (Convert native presets to LV2)
 $ZYNTHIAN_RECIPE_DIR/install_preset2lv2.sh
+
+# Install the njconnect Jack Graph Manager
+$ZYNTHIAN_RECIPE_DIR/install_njconnect.sh
 
 #************************************************
 #------------------------------------------------
@@ -312,11 +334,6 @@ $ZYNTHIAN_RECIPE_DIR/install_preset2lv2.sh
 
 # Install ZynAddSubFX
 $ZYNTHIAN_RECIPE_DIR/install_zynaddsubfx.sh
-#Setup user presets directories
-mkdir "$ZYNTHIAN_MY_DATA_DIR/presets/zynaddsubfx"
-mkdir "$ZYNTHIAN_MY_DATA_DIR/presets/zynaddsubfx/XMZ"
-#mkdir "$ZYNTHIAN_MY_DATA_DIR/presets/zynaddsubfx/XSZ"
-#mkdir "$ZYNTHIAN_MY_DATA_DIR/presets/zynaddsubfx/XLZ"
 
 # Install Fluidsynth & SF2 SondFonts
 apt-get -y install fluidsynth libfluidsynth-dev fluid-soundfont-gm fluid-soundfont-gs timgm6mb-soundfont
@@ -357,10 +374,6 @@ pd-pdp pd-mjlib pd-cyclone pd-jmmmp pd-3dp pd-boids pd-mapping pd-maxlib
 mkdir /root/Pd
 mkdir /root/Pd/externals
 
-mkdir "$ZYNTHIAN_MY_DATA_DIR/presets/puredata"
-mkdir "$ZYNTHIAN_MY_DATA_DIR/presets/puredata/generative"
-mkdir "$ZYNTHIAN_MY_DATA_DIR/presets/puredata/synths"
-
 #------------------------------------------------
 # Install MOD stuff
 #------------------------------------------------
@@ -370,16 +383,10 @@ $ZYNTHIAN_RECIPE_DIR/install_mod-host.sh
 
 #Install MOD-UI
 $ZYNTHIAN_RECIPE_DIR/install_mod-ui.sh
-$ZYNTHIAN_RECIPE_DIR/install_phantomjs.sh
+#$ZYNTHIAN_RECIPE_DIR/install_phantomjs.sh
 
 #Install MOD-SDK
 $ZYNTHIAN_RECIPE_DIR/install_mod-sdk.sh
-
-#Setup user presets directories: create directories, copy pedalboards & create symlinks ...
-mkdir "$ZYNTHIAN_MY_DATA_DIR/presets/mod-ui"
-mkdir "$ZYNTHIAN_MY_DATA_DIR/presets/mod-ui/pedalboards"
-cp -na $ZYNTHIAN_DATA_DIR/presets/mod-ui/pedalboards/*.pedalboard $ZYNTHIAN_MY_DATA_DIR/presets/mod-ui/pedalboards
-ln -s $ZYNTHIAN_MY_DATA_DIR/presets/mod-ui/pedalboards /root/.pedalboards
 
 #------------------------------------------------
 # Install Plugins
@@ -392,12 +399,6 @@ cd $ZYNTHIAN_SYS_DIR/scripts
 #------------------------------------------------
 $ZYNTHIAN_RECIPE_DIR/install_hylia.sh
 $ZYNTHIAN_RECIPE_DIR/install_pd_extra_abl_link.sh
-
-#------------------------------------------------
-# Install MIDISport firmware
-#------------------------------------------------
-apt -y install midisport-firmware
-
 
 #************************************************
 #------------------------------------------------
@@ -412,7 +413,6 @@ fi
 
 # Run configuration script before ending
 $ZYNTHIAN_SYS_DIR/scripts/update_zynthian_sys.sh
-
 
 #************************************************
 #------------------------------------------------
